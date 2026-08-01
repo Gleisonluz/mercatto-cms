@@ -32,20 +32,23 @@ enum Papel {
 }
 
 model Usuario {
-  id            String    @id @default(cuid())
-  nome          String
-  email         String    @unique
-  senhaHash     String
-  papel         Papel     @default(JORNALISTA)
-  avatarUrl     String?
-  ativo         Boolean   @default(true)
-  ultimoAcesso  DateTime?
-  criadoEm      DateTime  @default(now())
-  atualizadoEm  DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  nome         String
+  email        String    @unique
+  senhaHash    String
+  papel        Papel     @default(JORNALISTA)
+  avatarUrl    String?
+  ativo        Boolean   @default(true)
+  ultimoAcesso DateTime?
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
 
   sessoes       Sessao[]
   contas        Conta[]
   logsAuditoria LogAuditoria[]
+
+  noticiasComoAutor  Noticia[] @relation("NoticiasAutor")
+  noticiasComoEditor Noticia[] @relation("NoticiasEditor")
 
   @@map("usuarios")
 }
@@ -55,18 +58,18 @@ model Usuario {
 // ---------------------------------------------------------------
 
 model Conta {
-  id                String  @id @default(cuid())
-  usuarioId         String
-  tipo              String
-  provedor          String
-  provedorContaId   String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
+  id              String  @id @default(cuid())
+  usuarioId       String
+  tipo            String
+  provedor        String
+  provedorContaId String
+  refresh_token   String? @db.Text
+  access_token    String? @db.Text
+  expires_at      Int?
+  token_type      String?
+  scope           String?
+  id_token        String? @db.Text
+  session_state   String?
 
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
@@ -99,12 +102,12 @@ model TokenVerificacao {
 // ---------------------------------------------------------------
 
 model LogAuditoria {
-  id         String   @id @default(cuid())
-  usuarioId  String?
-  acao       String
-  detalhes   String?  @db.Text
-  ip         String?
-  criadoEm   DateTime @default(now())
+  id        String   @id @default(cuid())
+  usuarioId String?
+  acao      String
+  detalhes  String?  @db.Text
+  ip        String?
+  criadoEm  DateTime @default(now())
 
   usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
 
@@ -115,26 +118,116 @@ model LogAuditoria {
 // Módulo: editorial — Editorias (Sprint 2)
 // ---------------------------------------------------------------
 // Corresponde à "Organização Editorial" prevista em 01.03.1 (seção 7).
-// A relação com o model Noticia será adicionada quando o módulo
-// editorial de notícias for implementado (Sprint 3+); até lá, a
-// contagem de notícias por editoria é exibida como 0 na interface.
 
 model Editoria {
-  id               String   @id @default(cuid())
-  nome             String
-  slug             String   @unique
-  descricao        String?  @db.Text
-  cor              String?
-  icone            String?
-  imagemCapaUrl    String?
-  ordem            Int      @default(0)
-  ativo            Boolean  @default(true)
-  seoTitle         String?
-  seoDescription   String?  @db.Text
-  criadoEm         DateTime @default(now())
-  atualizadoEm     DateTime @updatedAt
+  id             String   @id @default(cuid())
+  nome           String
+  slug           String   @unique
+  descricao      String?  @db.Text
+  cor            String?
+  icone          String?
+  imagemCapaUrl  String?
+  ordem          Int      @default(0)
+  ativo          Boolean  @default(true)
+  seoTitle       String?
+  seoDescription String?  @db.Text
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+
+  noticias Noticia[]
 
   @@index([ordem])
   @@map("editorias")
 }
 
+// ---------------------------------------------------------------
+// Módulo: editorial — Notícia (Sprint 3.1 — somente modelagem)
+// ---------------------------------------------------------------
+// Corresponde à Gestão Editorial / Página da Notícia (01.03.1 §4 e §12).
+//
+// Escopo desta etapa: apenas o model, enums, relacionamentos e índices.
+// CRUD, repository, use cases, services, páginas, componentes, editor
+// (Tiptap), upload e geração automática de SEO ficam para as próximas
+// sub-etapas do Sprint 3, mediante autorização.
+//
+// Dependências ainda não modeladas (fora de escopo desta etapa):
+// - Empresa (para "empresas relacionadas") — módulo ainda não iniciado.
+// - Midia/Galeria (múltiplas imagens por notícia) — pertence ao módulo `midia`.
+// - Tag — não solicitada nesta etapa.
+
+enum StatusNoticia {
+  RASCUNHO
+  EM_EDICAO
+  REVISAO
+  AGUARDANDO_APROVACAO
+  AGENDADA
+  PUBLICADA
+  ARQUIVADA
+}
+
+enum TipoConteudo {
+  NOTICIA
+  ARTIGO
+  ENTREVISTA
+  REPORTAGEM_ESPECIAL
+}
+
+model Noticia {
+  id     String @id @default(cuid())
+  titulo String
+  slug   String @unique
+
+  // Linha fina (subtítulo/deck) e resumo (chamada usada em listagens/cards)
+  linhaFina String? @db.Text
+  resumo    String? @db.Text
+
+  // Corpo da notícia. Formato de armazenamento (HTML/JSON) será definido
+  // quando o editor de conteúdo (Tiptap) for implementado.
+  conteudo String @db.LongText
+
+  tipo   TipoConteudo  @default(NOTICIA)
+  status StatusNoticia @default(RASCUNHO)
+
+  // Imagem de capa (galeria completa é responsabilidade futura do módulo midia)
+  imagemDestaqueUrl     String?
+  imagemDestaqueAlt     String?
+  imagemDestaqueCredito String?
+
+  destaque            Boolean @default(false)
+  ordemDestaque       Int?
+  visualizacoes       Int     @default(0)
+  tempoLeituraMinutos Int?
+
+  // SEO essencial (espelha os campos já existentes em Editoria).
+  // Metadados adicionais (Open Graph, Twitter Cards, Schema.org) serão
+  // derivados destes campos quando a geração de SEO for implementada.
+  seoTitle        String?
+  seoDescription  String? @db.Text
+  seoCanonicalUrl String?
+
+  publicadoEm  DateTime?
+  agendadoPara DateTime?
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+
+  editoriaId String
+  editoria   Editoria @relation(fields: [editoriaId], references: [id], onDelete: Restrict)
+
+  autorId String
+  autor   Usuario @relation("NoticiasAutor", fields: [autorId], references: [id], onDelete: Restrict)
+
+  editorResponsavelId String?
+  editorResponsavel   Usuario? @relation("NoticiasEditor", fields: [editorResponsavelId], references: [id], onDelete: SetNull)
+
+  // Auto-relação N:N — "notícias relacionadas" (01.03.1 §12)
+  relacionadas   Noticia[] @relation("NoticiasRelacionadas")
+  relacionadaPor Noticia[] @relation("NoticiasRelacionadas")
+
+  @@index([status])
+  @@index([editoriaId])
+  @@index([autorId])
+  @@index([editorResponsavelId])
+  @@index([publicadoEm])
+  @@index([destaque, ordemDestaque])
+  @@map("noticias")
+}
