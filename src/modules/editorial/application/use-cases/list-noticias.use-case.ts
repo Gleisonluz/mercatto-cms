@@ -7,7 +7,6 @@ import type {
   ParametrosPaginacao,
   ResultadoPaginado,
 } from "@/shared/types/pagination";
-import { FiltroDeListagemAusenteError } from "@/modules/editorial/application/use-cases/errors";
 
 export interface ListNoticiasInput {
   status?: StatusNoticia;
@@ -18,17 +17,19 @@ export interface ListNoticiasInput {
 }
 
 /**
- * Caso de uso: listar notícias segundo um filtro.
+ * Caso de uso: listar notícias, com filtro opcional.
  *
- * O repositório (Sprint 3.2) expõe métodos de listagem específicos
- * (`listarPorStatus`, `listarPorEditoria`, `listarDestaques`,
- * `listarPublicadas`), sem um "listar todas" genérico. Este Use Case
- * despacha para o método correspondente ao filtro informado.
+ * O repositório (Sprint 3.2, ampliado na Sprint 3.5) expõe métodos de
+ * listagem específicos (`listarPorStatus`, `listarPorEditoria`,
+ * `listarDestaques`, `listarPublicadas`) e um `listarTodas` genérico.
+ * Este Use Case despacha para o método correspondente ao filtro
+ * informado.
  *
  * Ordem de precedência quando mais de um filtro é informado:
  * `apenasDestaques` > `apenasPublicadas` > `status` > `editoriaId`.
- * Se nenhum filtro for informado, lança `FiltroDeListagemAusenteError`
- * em vez de assumir um comportamento não especificado.
+ * Se nenhum filtro for informado, lista todas as notícias
+ * (comportamento padrão de uma tela principal de CMS — decisão da
+ * Sprint 3.5, que substitui o comportamento anterior de lançar erro).
  */
 export class ListNoticiasUseCase {
   constructor(private readonly noticiaRepository: INoticiaRepository) {}
@@ -56,6 +57,6 @@ export class ListNoticiasUseCase {
       );
     }
 
-    throw new FiltroDeListagemAusenteError();
+    return this.noticiaRepository.listarTodas(input.paginacao);
   }
 }

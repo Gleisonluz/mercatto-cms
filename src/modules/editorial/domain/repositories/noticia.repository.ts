@@ -40,6 +40,11 @@ export interface INoticiaRepository {
     paginacao?: ParametrosPaginacao,
   ): Promise<ResultadoPaginado<Noticia>>;
 
+  /** Todas as notícias, sem filtro, ordenadas por `criadoEm` desc. */
+  listarTodas(
+    paginacao?: ParametrosPaginacao,
+  ): Promise<ResultadoPaginado<Noticia>>;
+
   listarPorEditoria(
     editoriaId: string,
     paginacao?: ParametrosPaginacao,

@@ -106,6 +106,12 @@ class NoticiaRepositoryPrisma implements INoticiaRepository {
     return this.paginar({ status }, paginacao);
   }
 
+  async listarTodas(
+    paginacao?: ParametrosPaginacao,
+  ): Promise<ResultadoPaginado<Noticia>> {
+    return this.paginar({}, paginacao);
+  }
+
   async listarPorEditoria(
     editoriaId: string,
     paginacao?: ParametrosPaginacao,
