@@ -9,6 +9,7 @@ import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Select } from "@/shared/components/ui/select";
 import { SubmitButton } from "@/shared/components/ui/submit-button";
+import { ImagemDestaqueField } from "@/modules/editorial/presentation/imagem-destaque-field";
 import { gerarSlug } from "@/modules/editorial/domain/value-objects/slug";
 import type { Noticia } from "@/modules/editorial/domain/entities/noticia.entity";
 import type { EstadoFormularioNoticia } from "@/modules/editorial/application/noticia.actions";
@@ -192,15 +193,10 @@ export function NoticiaForm({
           </p>
         </div>
 
-        <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <Label htmlFor="imagemDestaqueUrl">Imagem de destaque (URL)</Label>
-          <Input
-            id="imagemDestaqueUrl"
-            name="imagemDestaqueUrl"
-            defaultValue={noticia?.imagemDestaqueUrl ?? ""}
-            placeholder="https://..."
-          />
-        </div>
+        <ImagemDestaqueField
+          valorInicial={noticia?.imagemDestaqueUrl}
+          altInicial={noticia?.imagemDestaqueAlt}
+        />
       </div>
 
       <fieldset className="flex flex-col gap-4 rounded-md border border-gray-200 p-4">
