@@ -136,6 +136,15 @@ class NoticiaRepositoryPrisma implements INoticiaRepository {
     ]);
   }
 
+  async listarPublicadasPorEditoria(
+    editoriaId: string,
+    paginacao?: ParametrosPaginacao,
+  ): Promise<ResultadoPaginado<Noticia>> {
+    return this.paginar({ editoriaId, status: "PUBLICADA" }, paginacao, [
+      { publicadoEm: "desc" },
+    ]);
+  }
+
   /**
    * Helper interno de paginação, reutilizado por todos os métodos de
    * listagem filtrada. Mantém a lógica de contagem + paginação em um

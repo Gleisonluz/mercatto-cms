@@ -59,4 +59,17 @@ export interface INoticiaRepository {
   listarPublicadas(
     paginacao?: ParametrosPaginacao,
   ): Promise<ResultadoPaginado<Noticia>>;
+
+  /**
+   * Notícias com `status = PUBLICADA` de uma editoria específica,
+   * ordenadas por `publicadoEm` desc. Resolve a lacuna entre
+   * `listarPorEditoria` (sem filtro de status) e `listarPublicadas`
+   * (sem filtro de editoria) — necessária para a listagem pública
+   * por editoria (Sprint 6), sem duplicar a regra de "o que é
+   * publicado" em nenhuma camada fora do repositório.
+   */
+  listarPublicadasPorEditoria(
+    editoriaId: string,
+    paginacao?: ParametrosPaginacao,
+  ): Promise<ResultadoPaginado<Noticia>>;
 }
