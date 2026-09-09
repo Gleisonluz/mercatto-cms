@@ -1,11 +1,6 @@
 // Mercatto CMS - Schema Prisma
-// Banco de dados: MySQL (ADR-005)
-// ORM: Prisma (ADR-004) — Prisma 6.15.x
-//
-// Este schema representa a FUNDAÇÃO do Sprint 1 + o módulo de
-// Editorias (Sprint 2). Demais entidades (Noticia, Empresa, Midia,
-// Publicidade, etc.) serão adicionadas nos próximos sprints, conforme
-// o módulo correspondente for implementado (Modular Monolith).
+// Banco de dados: MySQL
+// ORM: Prisma 6.15.x
 
 generator client {
   provider = "prisma-client-js"
@@ -16,9 +11,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ---------------------------------------------------------------
-// Módulo: usuarios
-// ---------------------------------------------------------------
+// ===============================================================
+// MÓDULO: USUÁRIOS
+// ===============================================================
 
 enum Papel {
   SUPER_ADMINISTRADOR
@@ -53,9 +48,10 @@ model Usuario {
   @@map("usuarios")
 }
 
-// ---------------------------------------------------------------
-// Módulo: autenticação (compatível com Auth.js / Prisma Adapter)
-// ---------------------------------------------------------------
+// ===============================================================
+// MÓDULO: AUTENTICAÇÃO
+// Compatível com Auth.js / Prisma Adapter
+// ===============================================================
 
 model Conta {
   id              String  @id @default(cuid())
@@ -97,9 +93,9 @@ model TokenVerificacao {
   @@map("tokens_verificacao")
 }
 
-// ---------------------------------------------------------------
-// Módulo: auditoria (transversal, requisito de segurança - 01.03.1 §19)
-// ---------------------------------------------------------------
+// ===============================================================
+// MÓDULO: AUDITORIA
+// ===============================================================
 
 model LogAuditoria {
   id        String   @id @default(cuid())
@@ -114,10 +110,9 @@ model LogAuditoria {
   @@map("logs_auditoria")
 }
 
-// ---------------------------------------------------------------
-// Módulo: editorial — Editorias (Sprint 2)
-// ---------------------------------------------------------------
-// Corresponde à "Organização Editorial" prevista em 01.03.1 (seção 7).
+// ===============================================================
+// MÓDULO: EDITORIAL — EDITORIAS
+// ===============================================================
 
 model Editoria {
   id             String   @id @default(cuid())
@@ -140,20 +135,9 @@ model Editoria {
   @@map("editorias")
 }
 
-// ---------------------------------------------------------------
-// Módulo: editorial — Notícia (Sprint 3.1 — somente modelagem)
-// ---------------------------------------------------------------
-// Corresponde à Gestão Editorial / Página da Notícia (01.03.1 §4 e §12).
-//
-// Escopo desta etapa: apenas o model, enums, relacionamentos e índices.
-// CRUD, repository, use cases, services, páginas, componentes, editor
-// (Tiptap), upload e geração automática de SEO ficam para as próximas
-// sub-etapas do Sprint 3, mediante autorização.
-//
-// Dependências ainda não modeladas (fora de escopo desta etapa):
-// - Empresa (para "empresas relacionadas") — módulo ainda não iniciado.
-// - Midia/Galeria (múltiplas imagens por notícia) — pertence ao módulo `midia`.
-// - Tag — não solicitada nesta etapa.
+// ===============================================================
+// MÓDULO: EDITORIAL — NOTÍCIAS
+// ===============================================================
 
 enum StatusNoticia {
   RASCUNHO
@@ -177,49 +161,51 @@ model Noticia {
   titulo String
   slug   String @unique
 
-  // Linha fina (subtítulo/deck) e resumo (chamada usada em listagens/cards)
+  // Linha fina e resumo
   linhaFina String? @db.Text
   resumo    String? @db.Text
 
-  // Corpo da notícia. Formato de armazenamento (HTML/JSON) será definido
-  // quando o editor de conteúdo (Tiptap) for implementado.
+  // Corpo da notícia
   conteudo String @db.LongText
 
   tipo   TipoConteudo  @default(NOTICIA)
   status StatusNoticia @default(RASCUNHO)
 
-  // Imagem de capa (galeria completa é responsabilidade futura do módulo midia)
+  // Imagem de destaque
   imagemDestaqueUrl     String?
   imagemDestaqueAlt     String?
   imagemDestaqueCredito String?
 
+  // Destaques
   destaque            Boolean @default(false)
   ordemDestaque       Int?
   visualizacoes       Int     @default(0)
   tempoLeituraMinutos Int?
 
-  // SEO essencial (espelha os campos já existentes em Editoria).
-  // Metadados adicionais (Open Graph, Twitter Cards, Schema.org) serão
-  // derivados destes campos quando a geração de SEO for implementada.
+  // SEO
   seoTitle        String?
   seoDescription  String? @db.Text
   seoCanonicalUrl String?
 
+  // Datas
   publicadoEm  DateTime?
   agendadoPara DateTime?
   criadoEm     DateTime  @default(now())
   atualizadoEm DateTime  @updatedAt
 
+  // Editoria
   editoriaId String
   editoria   Editoria @relation(fields: [editoriaId], references: [id], onDelete: Restrict)
 
+  // Autor
   autorId String
   autor   Usuario @relation("NoticiasAutor", fields: [autorId], references: [id], onDelete: Restrict)
 
+  // Editor responsável
   editorResponsavelId String?
   editorResponsavel   Usuario? @relation("NoticiasEditor", fields: [editorResponsavelId], references: [id], onDelete: SetNull)
 
-  // Auto-relação N:N — "notícias relacionadas" (01.03.1 §12)
+  // Notícias relacionadas — auto-relação N:N
   relacionadas   Noticia[] @relation("NoticiasRelacionadas")
   relacionadaPor Noticia[] @relation("NoticiasRelacionadas")
 
@@ -230,4 +216,57 @@ model Noticia {
   @@index([publicadoEm])
   @@index([destaque, ordemDestaque])
   @@map("noticias")
+}
+
+// ===============================================================
+// MÓDULO: EMPRESAS
+// ===============================================================
+
+enum StatusEmpresa {
+  ATIVA
+  INATIVA
+}
+
+model Empresa {
+  id String @id @default(cuid())
+
+  // Identificação
+  nomeEmpresarial String
+  slug            String @unique
+
+  // Identidade visual
+  logotipoUrl       String?
+  fotografiaCapaUrl String?
+
+  // Localização e segmento
+  segmentoAtuacao String?
+  cidade          String?
+  estado          String?
+
+  // Institucional
+  descricaoInstitucional String? @db.Text
+
+  // Presença digital
+  siteOficial  String?
+  redesSociais String? @db.Text
+  contatos     String? @db.Text
+
+  // Localização
+  localizacao String? @db.Text
+
+  // Selos / certificações / ESG
+  selosCertificacoes String? @db.Text
+  esg                String? @db.Text
+
+  // Status
+  status StatusEmpresa @default(ATIVA)
+
+  // Auditoria temporal
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([status])
+  @@index([cidade])
+  @@index([estado])
+  @@map("empresas")
 }
