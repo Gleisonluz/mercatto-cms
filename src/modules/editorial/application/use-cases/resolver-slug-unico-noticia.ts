@@ -1,4 +1,4 @@
-import { gerarSlug } from "@/modules/editorial/domain/value-objects/slug";
+import { gerarSlug } from "@/shared/lib/slug";
 import type { INoticiaRepository } from "@/modules/editorial/domain/repositories/noticia.repository";
 
 /**

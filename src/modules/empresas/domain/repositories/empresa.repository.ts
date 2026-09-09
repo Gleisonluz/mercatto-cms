@@ -8,9 +8,12 @@ import type {
 } from "@/shared/types/pagination";
 
 export interface IEmpresaRepository {
-  criar(dados: DadosEmpresa): Promise<Empresa>;
+  criar(dados: DadosEmpresa & { slug: string }): Promise<Empresa>;
 
-  atualizar(id: string, dados: DadosEmpresa): Promise<Empresa>;
+  atualizar(
+    id: string,
+    dados: DadosEmpresa & { slug: string },
+  ): Promise<Empresa>;
 
   obterPorId(id: string): Promise<Empresa | null>;
 

@@ -11,11 +11,13 @@ import type {
 } from "@/modules/empresas/domain/entities/empresa.entity";
 
 class EmpresaRepositoryPrisma implements IEmpresaRepository {
-  async criar(dados: DadosEmpresa): Promise<Empresa> {
+  async criar(
+    dados: DadosEmpresa & { slug: string },
+  ): Promise<Empresa> {
     return prisma.empresa.create({
       data: {
         nomeEmpresarial: dados.nomeEmpresarial,
-        slug: dados.slug ?? "",
+        slug: dados.slug,
         logotipoUrl: dados.logotipoUrl ?? null,
         fotografiaCapaUrl: dados.fotografiaCapaUrl ?? null,
         segmentoAtuacao: dados.segmentoAtuacao ?? null,
@@ -35,7 +37,7 @@ class EmpresaRepositoryPrisma implements IEmpresaRepository {
 
   async atualizar(
     id: string,
-    dados: DadosEmpresa,
+    dados: DadosEmpresa & { slug: string },
   ): Promise<Empresa> {
     return prisma.empresa.update({
       where: { id },
