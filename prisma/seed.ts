@@ -3,13 +3,22 @@
  * Cria o primeiro usuário Super Administrador para acesso ao sistema.
  * Executar com: npm run db:seed
  */
+import "dotenv/config";
 import { PrismaClient, Papel } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const senhaHash = await bcrypt.hash("troque-esta-senha", 10);
+  const senhaInicial = process.env.ADMIN_INITIAL_PASSWORD;
+
+  if (!senhaInicial) {
+    throw new Error(
+      "A variável ADMIN_INITIAL_PASSWORD não está configurada no .env.",
+    );
+  }
+
+  const senhaHash = await bcrypt.hash(senhaInicial, 10);
 
   const admin = await prisma.usuario.upsert({
     where: { email: "admin@mercattonews.com.br" },
@@ -22,10 +31,7 @@ async function main() {
     },
   });
 
-  console.log("Usuário Super Administrador criado/atualizado:", admin.email);
-  console.log(
-    "IMPORTANTE: altere a senha padrão imediatamente após o primeiro login.",
-  );
+  console.log("Usuário Super Administrador criado:", admin.email);
 }
 
 main()
