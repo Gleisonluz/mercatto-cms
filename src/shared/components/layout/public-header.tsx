@@ -1,52 +1,63 @@
 import Link from "next/link";
 
-import { listarEditorias } from "@/modules/editorial/infrastructure/editoria.repository";
 import { appConfig } from "@/shared/config/app.config";
 
+import { BrandLogo } from "./brand-logo";
+import { obterEditoriasAtivas } from "./editorias-ativas";
+
 /**
- * Header de navegação pública — Sprint 6.4.
+ * Masthead e navegação pública — Redesign, Fase 1.
  *
- * Sem isso, um visitante não tinha nenhuma forma de descobrir ou
- * navegar entre `/`, `/[categoria]` e `/noticia/[slug]` a não ser
- * digitando a URL diretamente (achado do diagnóstico da Sprint 6.4).
+ * Substitui o cabeçalho de texto (Sprint 6.4) por um masthead editorial:
+ * faixa preta com o logotipo oficial e o slogan, filete vermelho de 3px na
+ * base da faixa e, abaixo, a barra de editorias sobre branco aquecido.
  *
- * Reutiliza `listarEditorias()` (Sprint 2) — mesma função já usada
- * pela Home para resolver nomes de editoria. Filtra por `ativo` na
- * apresentação: a função já retorna todas as editorias sem esse
- * filtro (usado assim de propósito no admin), então aqui só
- * escolhemos quais das editorias já retornadas aparecem no menu
- * público — não é uma nova regra de negócio, é seleção de exibição.
- *
- * Server Component: nenhuma interatividade, nenhum `"use client"`.
+ * Menu: mesmas editorias ativas e mesmos destinos (`/${slug}`) de antes. Uma
+ * linha só, centralizada; quando não couber, rola na horizontal (CSS puro,
+ * sem JavaScript), mantendo o componente como Server Component. Sem destaque
+ * da editoria ativa, que exigiria um componente de cliente.
  */
 export async function PublicHeader() {
-  const editorias = await listarEditorias();
-  const editoriasAtivas = editorias.filter((editoria) => editoria.ativo);
+  const editoriasAtivas = await obterEditoriasAtivas();
 
   return (
-    <header className="border-b border-gray-200 bg-white">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <Link
-          href="/"
-          className="text-lg font-bold tracking-tight text-gray-900"
-        >
-          {appConfig.nome}
-        </Link>
-
-        {editoriasAtivas.length > 0 && (
-          <nav aria-label="Editorias" className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
-            {editoriasAtivas.map((editoria) => (
-              <Link
-                key={editoria.id}
-                href={`/${editoria.slug}`}
-                className="text-gray-600 hover:text-gray-900 hover:underline"
-              >
-                {editoria.nome}
-              </Link>
-            ))}
-          </nav>
-        )}
+    <header>
+      <div className="border-b-[3px] border-mercatto-red bg-mercatto-black">
+        <div className="mx-auto w-full max-w-6xl px-4 pb-3.5 pt-4 text-center md:pb-[18px] md:pt-[22px]">
+          <Link
+            href="/"
+            aria-label={`${appConfig.nome} — página inicial`}
+            className="block"
+          >
+            <BrandLogo priority />
+          </Link>
+          <p className="mt-2 font-serif-display text-sm leading-[1.3] tracking-[0.02em] text-mercatto-cream md:mt-2.5 md:text-xl">
+            {appConfig.slogan}
+          </p>
+        </div>
       </div>
+
+      {editoriasAtivas.length > 0 && (
+        <nav
+          aria-label="Editorias"
+          className="border-b border-mercatto-gray/25 bg-mercatto-cream"
+        >
+          <div className="mx-auto w-full max-w-6xl px-4">
+            <ul className="nav-scroll m-0 mx-auto flex w-max max-w-full list-none overflow-x-auto p-0">
+              {editoriasAtivas.map((editoria) => (
+                <li key={editoria.id}>
+                  <Link
+                    href={`/${editoria.slug}`}
+                    className="flex min-h-11 items-center whitespace-nowrap px-3.5 text-sm font-medium text-mercatto-gray hover:text-mercatto-blue hover:underline hover:underline-offset-[6px] focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-mercatto-blue"
+                  >
+                    {editoria.nome}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

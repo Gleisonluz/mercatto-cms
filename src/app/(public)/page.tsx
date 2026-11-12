@@ -4,6 +4,7 @@ import { ListNoticiasUseCase } from "@/modules/editorial/application/use-cases";
 import { noticiaRepository } from "@/modules/editorial/infrastructure/noticia.repository";
 import { listarEditorias } from "@/modules/editorial/infrastructure/editoria.repository";
 import { NoticiaCard } from "@/modules/editorial/presentation/noticia-card";
+import { AdSlot } from "@/shared/components/ads/ad-slot";
 import { appConfig, seoConfig } from "@/shared/config/app.config";
 
 export const metadata: Metadata = {
@@ -54,13 +55,17 @@ export default async function HomePage() {
   );
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10">
-      <header className="flex flex-col gap-2 border-b border-gray-200 pb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          {appConfig.nome}
-        </h1>
-        <p className="max-w-2xl text-gray-600">{appConfig.descricaoCurta}</p>
-      </header>
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 pb-10 pt-5">
+      {/*
+        Redesign, Fase 1: a marca e o slogan agora ficam no masthead
+        (`PublicHeader`). O título visível saiu; este `h1` só para leitores de
+        tela é PROVISÓRIO — a estrutura semântica da home (h1, manchete, seções)
+        será revista na Fase 2, quando a manchete principal for implementada.
+      */}
+      <h1 className="sr-only">{appConfig.nome}</h1>
+
+      {/* Primeiro espaço publicitário: abaixo do menu, antes do conteúdo editorial. */}
+      <AdSlot />
 
       {resultado.itens.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-20 text-center">

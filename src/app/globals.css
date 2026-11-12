@@ -24,3 +24,48 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ==========================================================================
+   Identidade visual do portal — Redesign, Fase 1
+   Acrescenta tokens e estilos restritos ao portal público (marcado pelo
+   wrapper `.portal` em `(public)/layout.tsx`). Nada acima foi alterado, e o
+   admin segue com o comportamento anterior.
+   ========================================================================== */
+
+@theme {
+  --color-mercatto-red: #ec1b24;
+  --color-mercatto-gray: #58585a;
+  --color-mercatto-blue: #17619c;
+  --color-mercatto-cream: #f8f3f3; /* branco aquecido */
+  --color-mercatto-black: #000000; /* exceção deliberada: masthead e rodapé */
+  --color-mercatto-ink: #171717; /* texto corrente (fora da paleta oficial) */
+}
+
+/* `inline`: a fonte é definida no wrapper do portal (next/font), não em :root. */
+@theme inline {
+  --font-serif-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+}
+
+/* Páginas públicas ignoram o modo escuro do sistema (o admin não é afetado). */
+:root:has(.portal) {
+  --background: #f8f3f3;
+  --foreground: #171717;
+}
+
+/* Menu de editorias: rolagem horizontal sem barra visível. */
+.portal .nav-scroll {
+  scrollbar-width: none;
+}
+
+.portal .nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Abaixo de lg o menu pode rolar: o degradê à direita sinaliza que há mais itens. */
+@media (max-width: 1023px) {
+  .portal .nav-scroll {
+    padding-right: 28px;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+}

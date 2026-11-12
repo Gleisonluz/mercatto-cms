@@ -13,6 +13,7 @@ export const appConfig = {
   nome: "Mercatto News",
   descricaoCurta:
     "Inteligência empresarial e desenvolvimento regional do Sul do Brasil.",
+  slogan: "Inteligência, informação e negócios.",
   urlBase: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   ambiente: process.env.NODE_ENV ?? "development",
 } as const;
